@@ -3,24 +3,21 @@ name: visual-director
 description: "Route image intent to reusable visual templates, Arabic/RTL rules, project profiles, and model-aware production prompts."
 category: design
 risk: safe
-source: community
-source_repo: freestylefly/awesome-gpt-image-2
-source_type: community
+source: self
+source_type: self
 date_added: "2026-08-22"
 author: 3ssiri
 tags: [image-generation, visual-design, prompt-engineering, arabic, rtl, agents]
 tools: [claude, codex, cursor, gemini]
-license: "MIT"
-license_source: "https://github.com/freestylefly/awesome-gpt-image-2/blob/main/LICENSE"
 ---
 
 # Visual Director
 
 ## Overview
 
-Visual Director turns an image request into a structured visual specification before writing a model prompt. It adapts the category → style → scene approach from `freestylefly/awesome-gpt-image-2`, then extends it with Arabic/RTL constraints, project profiles, model adapters, deterministic routing guidance, and explicit visual QA.
+Visual Director turns an image request into a structured visual specification before writing a model prompt. It is an original, model-neutral routing skill informed by the category → style → scene methodology demonstrated in `freestylefly/awesome-gpt-image-2`, then extended with Arabic/RTL constraints, project profiles, model adapters, deterministic routing guidance, and explicit visual QA.
 
-The skill is model-neutral. GPT Image, Gemini image models, Qwen Image, Flux, Ideogram, Recraft, or another generator may consume the final specification through an adapter.
+The skill does not vendor the upstream prompt library, dataset, or templates. GPT Image, Gemini image models, Qwen Image, Flux, Ideogram, Recraft, or another generator may consume the final specification through an adapter.
 
 ## When to Use This Skill
 
@@ -194,7 +191,7 @@ Route:
 - The skill does not itself call an image API; it produces routing decisions, prompts, and QA criteria.
 - Style selection remains probabilistic unless the host runtime implements deterministic scoring.
 - Exact text rendering varies by image model; deterministic typography overlays remain preferable for critical Arabic or brand text.
-- Upstream `awesome-gpt-image-2` contains a much larger example library. This skill intentionally keeps a smaller model-neutral taxonomy rather than vendoring the complete upstream dataset.
+- `awesome-gpt-image-2` contains a much larger example library. This skill intentionally keeps a smaller model-neutral taxonomy rather than vendoring that dataset.
 
 ## Security & Safety Notes
 
@@ -221,4 +218,4 @@ Route:
 
 ## Attribution
 
-This skill is inspired by and partially adapts concepts from `freestylefly/awesome-gpt-image-2`, licensed under the MIT License. Preserve upstream attribution when redistributing substantial adapted material.
+The routing methodology was inspired in part by [freestylefly/awesome-gpt-image-2](https://github.com/freestylefly/awesome-gpt-image-2), an MIT-licensed project. This skill is independently written and does not copy or vendor its full style dataset, prompt templates, site code, or generated reference library.

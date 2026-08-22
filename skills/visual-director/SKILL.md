@@ -187,7 +187,7 @@ Route:
 - ❌ Do not bind the skill to one image provider.
 - ❌ Do not let style instructions override facts or curriculum meaning.
 - ❌ Do not ask the model to reproduce a real logo or UI unless an authorized reference asset is explicitly supplied.
-- ❌ Do not use generated Arabic text when a deterministic post-processing layer can add exact typography instead.
+- ❌ Do not use generated Arabic text when a deterministic overlay layer can add exact typography instead.
 
 ## Limitations
 

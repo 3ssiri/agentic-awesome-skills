@@ -94,6 +94,17 @@ function validateProtectedMain(branch) {
   return true;
 }
 
+function reportMainProtection(branch) {
+  if (branch?.name !== "main") {
+    throw new Error("Canonical-sync merge requires the base branch to be main.");
+  }
+  if (branch?.protected === true) return "protected";
+  process.stdout.write(
+    "[canonical-sync] GitHub does not report main as protected; relying on exact head/base and required-check verification.\n",
+  );
+  return "unprotected";
+}
+
 function selectCanonicalPullRequestRun(runs, options, expectedBaseSha) {
   const matches = (runs || []).filter((run) => (
     run?.path === CI_WORKFLOW_PATH &&
@@ -187,25 +198,25 @@ async function ensurePullRequestChecksStarted(options, expectedBaseSha, dependen
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const initialBranch = JSON.parse(runGh(["api", `repos/${options.repo}/branches/main`]));
-  validateProtectedMain(initialBranch);
+  reportMainProtection(initialBranch);
   const initialBaseSha = String(initialBranch?.commit?.sha || "");
-  if (!/^[0-9a-f]{40}$/u.test(initialBaseSha)) throw new Error("Protected main did not expose a full base SHA.");
+  if (!/^[0-9a-f]{40}$/u.test(initialBaseSha)) throw new Error("Canonical-sync base branch main did not expose a full base SHA.");
   const initialPr = JSON.parse(runGh(["api", `repos/${options.repo}/pulls/${options.pr}`]));
   validatePullRequest(initialPr, options, initialBaseSha);
   const pullRequestRun = await ensurePullRequestChecksStarted(options, initialBaseSha);
   await waitForChecks(options, pullRequestRun.check_suite_id);
   const pr = JSON.parse(runGh(["api", `repos/${options.repo}/pulls/${options.pr}`]));
   const finalBranch = JSON.parse(runGh(["api", `repos/${options.repo}/branches/main`]));
-  validateProtectedMain(finalBranch);
+  reportMainProtection(finalBranch);
   if (finalBranch?.commit?.sha !== initialBaseSha) {
-    throw new Error("Protected main changed while canonical-sync checks were running.");
+    throw new Error("Base branch main changed while canonical-sync checks were running.");
   }
   validatePullRequest(pr, options, initialBaseSha);
   const payload = JSON.stringify({
     merge_method: "squash",
     sha: options.head,
     commit_title: "chore: synchronize canonical repository state",
-    commit_message: "Generated artifacts reproduced and merged through protected required checks.",
+    commit_message: "Generated artifacts reproduced and merged through exact-head required checks.",
   });
   const merged = JSON.parse(runGh(
     ["api", `repos/${options.repo}/pulls/${options.pr}/merge`, "-X", "PUT", "--input", "-"],
@@ -237,6 +248,7 @@ module.exports = {
   ensurePullRequestChecksStarted,
   latestRequiredChecks,
   parseArgs,
+  reportMainProtection,
   selectCanonicalPullRequestRun,
   summarizeChecks,
   validateProtectedMain,

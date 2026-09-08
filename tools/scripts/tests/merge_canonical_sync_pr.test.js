@@ -42,6 +42,9 @@ assert.strictEqual(canonicalMerge.validatePullRequest({
 }, options, "b".repeat(40)), true);
 assert.strictEqual(canonicalMerge.validateProtectedMain({ name: "main", protected: true }), true);
 assert.throws(() => canonicalMerge.validateProtectedMain({ name: "main", protected: false }), /main as protected/);
+assert.strictEqual(canonicalMerge.reportMainProtection({ name: "main", protected: true }), "protected");
+assert.strictEqual(canonicalMerge.reportMainProtection({ name: "main", protected: false }), "unprotected");
+assert.throws(() => canonicalMerge.reportMainProtection({ name: "release", protected: true }), /base branch to be main/);
 assert.throws(() => canonicalMerge.validatePullRequest({
   number: 42,
   state: "open",

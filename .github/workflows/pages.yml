@@ -103,11 +103,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if gh api "repos/${GITHUB_REPOSITORY}/pages" >/dev/null 2>&1; then
+          tmp="$(mktemp)"
+          set +e
+          gh api --include "repos/${GITHUB_REPOSITORY}/pages" >"$tmp" 2>/dev/null
+          api_exit=$?
+          set -e
+          status="$(awk 'NR==1 { print $2 }' "$tmp")"
+          if [ "$status" = "200" ]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
-          else
+          elif [ "$status" = "404" ]; then
             echo "available=false" >> "$GITHUB_OUTPUT"
             echo "::warning title=GitHub Pages unavailable::Enable Pages in Settings → Pages → Source: GitHub Actions. Skipping configure/upload/deploy because this repository has no Pages site."
+          else
+            echo "::error title=GitHub Pages probe failed::Expected HTTP 200 or 404 from the Pages API; got ${status:-unknown} (gh exit ${api_exit})."
+            exit 1
           fi
 
       - name: Configure GitHub Pages

@@ -102,6 +102,16 @@ assert.match(
 );
 assert.match(
   pagesWorkflow,
+  /\[ "\$status" = "404" \]/,
+  "Pages workflow should treat only HTTP 404 as Pages not configured",
+);
+assert.match(
+  pagesWorkflow,
+  /Expected HTTP 200 or 404 from the Pages API/,
+  "Pages workflow should fail closed on Pages API errors other than 404",
+);
+assert.match(
+  pagesWorkflow,
   /if: steps\.pages\.outputs\.available == 'true'/,
   "Pages configure/upload should skip when the repository has no Pages site",
 );

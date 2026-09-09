@@ -371,8 +371,18 @@ assert.match(
 const pagesWorkflow = readText(".github/workflows/pages.yml");
 assert.match(
   pagesWorkflow,
-  /gh api "repos\/\$\{GITHUB_REPOSITORY\}\/pages"/,
-  "pages workflow should probe whether the GitHub Pages site exists",
+  /gh api --include "repos\/\$\{GITHUB_REPOSITORY\}\/pages"/,
+  "pages workflow should probe the GitHub Pages API with response headers",
+);
+assert.match(
+  pagesWorkflow,
+  /\[ "\$status" = "404" \]/,
+  "pages workflow should skip deploy only when the Pages API returns 404",
+);
+assert.match(
+  pagesWorkflow,
+  /Expected HTTP 200 or 404 from the Pages API/,
+  "pages workflow should fail the probe on unexpected Pages API statuses",
 );
 assert.match(
   pagesWorkflow,

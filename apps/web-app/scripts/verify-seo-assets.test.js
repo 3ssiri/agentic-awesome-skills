@@ -350,6 +350,31 @@ describe('seo assets verification helpers', () => {
     expect(() => assertPrerenderedRouteIdentities([routeUrl], distDir, '/repo', FIXTURE_ROOT_URL)).toThrow('legacy first-party Pages');
   });
 
+  it('rejects a canonical Pages catalog URL in JSON-LD when the hosted origin is a fork', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'seo-assets-'));
+    const distDir = path.join(tmpDir, 'dist');
+    const routeUrl = FIXTURE_ROOT_URL;
+    const jsonLd = currentIdentityJsonLd(routeUrl);
+    const organization = jsonLd.find((entry) => entry['@type'] === 'Organization');
+    organization.sameAs = [
+      'https://x.com/AASkills_',
+      PACKAGE_URL,
+      'https://sickn33.github.io/agentic-awesome-skills/',
+    ];
+    writeRouteIdentityFixture(
+      distDir,
+      routeUrl,
+      buildRouteIdentityHtml({
+        routeUrl,
+        jsonLd,
+      }),
+    );
+
+    expect(() => assertPrerenderedRouteIdentities([routeUrl], distDir, '/repo', FIXTURE_ROOT_URL)).toThrow(
+      'legacy first-party Pages catalog URL',
+    );
+  });
+
   it('requires the primary route JSON-LD identity to equal the sitemap route', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'seo-assets-'));
     const distDir = path.join(tmpDir, 'dist');

@@ -55,13 +55,17 @@ function parseCount(value, fallback) {
   return Number.isFinite(parsed) ? Math.max(parsed, 0) : fallback;
 }
 
-function getSiteBaseUrl() {
+export function getSiteBaseUrl() {
   const seoSiteUrl = (process.env.SEO_SITE_URL || '').trim().replace(/\/+$/, '');
   if (seoSiteUrl) {
     return seoSiteUrl;
   }
 
   return HOSTED_CATALOG_URL.replace(/\/+$/, '');
+}
+
+export function toCatalogRootUrl(urlValue) {
+  return `${String(urlValue).replace(/\/+$/, '')}/`;
 }
 
 function ensureDirectory(targetPath) {
@@ -338,12 +342,13 @@ function setRootFallback(html, fallbackHtml) {
   return html.replace(rootPattern, `<div id="root">${fallbackHtml}</div>`);
 }
 
-function buildHomeMeta({ catalogCount, imageUrl, canonicalUrl }) {
+export function buildHomeMeta({ catalogCount, imageUrl, canonicalUrl }) {
   const visibleCount = Math.max(catalogCount, HOME_CATALOG_COUNT_FALLBACK);
   const formattedCount = visibleCount.toLocaleString('en-US');
   const title = `Agentic Awesome Skills GitHub | ${formattedCount}+ AI coding skills`;
   const description = `Explore the GitHub library of ${formattedCount}+ installable agentic skills, specialized plugins, bundles, and workflows for Claude Code, Cursor, Codex CLI, Autohand Code, Gemini CLI, Antigravity, and other AI coding assistants.`;
-  const catalogBaseUrl = canonicalUrl.replace(/\/$/, '');
+  const catalogRootUrl = toCatalogRootUrl(canonicalUrl);
+  const catalogBaseUrl = catalogRootUrl.replace(/\/$/, '');
   const sourceCodeEntity = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareSourceCode',
@@ -352,7 +357,7 @@ function buildHomeMeta({ catalogCount, imageUrl, canonicalUrl }) {
     url: REPOSITORY_URL,
     sameAs: [...new Set([
       canonicalUrl,
-      HOSTED_CATALOG_URL,
+      catalogRootUrl,
       'https://www.npmjs.com/package/agentic-awesome-skills',
     ])],
     mainEntityOfPage: canonicalUrl,
@@ -416,7 +421,7 @@ function buildHomeMeta({ catalogCount, imageUrl, canonicalUrl }) {
         sameAs: [
           'https://x.com/AASkills_',
           'https://www.npmjs.com/package/agentic-awesome-skills',
-          HOSTED_CATALOG_URL,
+          catalogRootUrl,
         ],
       },
       {
@@ -622,8 +627,9 @@ function buildWorkbenchMeta({ imageUrl, canonicalUrl }) {
   };
 }
 
-function buildTopicLandingMeta({ page, imageUrl, canonicalUrl }) {
+export function buildTopicLandingMeta({ page, imageUrl, canonicalUrl }) {
   const catalogBaseUrl = canonicalUrl.replace(/\/topics\/[^/]+\/?$/, '');
+  const catalogRootUrl = toCatalogRootUrl(catalogBaseUrl);
   const keywords = Array.isArray(page.keywords) ? page.keywords.join(', ') : '';
   const sourceCodeEntity = {
     '@context': 'https://schema.org',
@@ -633,7 +639,7 @@ function buildTopicLandingMeta({ page, imageUrl, canonicalUrl }) {
     url: REPOSITORY_URL,
     sameAs: [...new Set([
       canonicalUrl,
-      HOSTED_CATALOG_URL,
+      catalogRootUrl,
       'https://www.npmjs.com/package/agentic-awesome-skills',
     ])],
     mainEntityOfPage: canonicalUrl,
@@ -698,7 +704,7 @@ function buildTopicLandingMeta({ page, imageUrl, canonicalUrl }) {
             '@type': 'ListItem',
             position: 1,
             name: SITE_NAME,
-            item: HOSTED_CATALOG_URL,
+            item: catalogRootUrl,
           },
           {
             '@type': 'ListItem',
@@ -717,7 +723,7 @@ function buildTopicLandingMeta({ page, imageUrl, canonicalUrl }) {
         sameAs: [
           'https://x.com/AASkills_',
           'https://www.npmjs.com/package/agentic-awesome-skills',
-          HOSTED_CATALOG_URL,
+          catalogRootUrl,
         ],
       },
       {
@@ -889,4 +895,6 @@ function main() {
   }
 }
 
-main();
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main();
+}

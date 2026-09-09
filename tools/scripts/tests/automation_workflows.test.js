@@ -367,3 +367,20 @@ assert.match(
   /if: steps\.graph\.outputs\.available == 'true'/,
   "dependency review should skip instead of failing when the repository cannot serve the compare API",
 );
+
+const pagesWorkflow = readText(".github/workflows/pages.yml");
+assert.match(
+  pagesWorkflow,
+  /gh api "repos\/\$\{GITHUB_REPOSITORY\}\/pages"/,
+  "pages workflow should probe whether the GitHub Pages site exists",
+);
+assert.match(
+  pagesWorkflow,
+  /if: steps\.pages\.outputs\.available == 'true'/,
+  "pages configure/upload should skip instead of failing when Pages is not enabled",
+);
+assert.match(
+  pagesWorkflow,
+  /if: needs\.build\.outputs\.pages_available == 'true'/,
+  "pages deploy should skip instead of failing when Pages is not enabled",
+);

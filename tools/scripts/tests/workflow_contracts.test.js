@@ -95,6 +95,21 @@ assert.match(
   /Validate SEO artifact quality[\s\S]*?SEO_SITE_URL: https:\/\/\$\{\{ github\.repository_owner \}\}\.github\.io\/\$\{\{ github\.event\.repository\.name \}\}/,
   "Pages SEO verification must use the same hosted catalog URL as the Pages build",
 );
+assert.match(
+  pagesWorkflow,
+  /id: pages/,
+  "Pages workflow should probe whether a GitHub Pages site exists",
+);
+assert.match(
+  pagesWorkflow,
+  /if: steps\.pages\.outputs\.available == 'true'/,
+  "Pages configure/upload should skip when the repository has no Pages site",
+);
+assert.match(
+  pagesWorkflow,
+  /if: needs\.build\.outputs\.pages_available == 'true'/,
+  "Pages deploy should skip when the repository has no Pages site",
+);
 
 const ciWorkflow = fs.readFileSync(
   path.resolve(__dirname, "..", "..", "..", ".github", "workflows", "ci.yml"),

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildSitemap, getSeoLandingPaths, selectTopSkillEntries } from './generate-sitemap.js';
+import { buildSitemap, generateRobotsTxt, getSeoLandingPaths, selectTopSkillEntries } from './generate-sitemap.js';
 
 describe('sitemap generation script helpers', () => {
   it('builds top skill entries sorted by stars/date/name without duplicates', () => {
@@ -75,5 +75,30 @@ describe('sitemap generation script helpers', () => {
     expect(skillRoutes).toHaveLength(42);
     expect(xml).toContain('https://example.com/skill/skill-41/</loc>');
     expect(xml).not.toContain('https://example.com/skill/skill-42/</loc>');
+  });
+
+  it('rewrites robots.txt Sitemap to the live hosted catalog root', () => {
+    const template = `User-agent: GPTBot
+Allow: /
+
+Sitemap: https://sickn33.github.io/agentic-awesome-skills/sitemap.xml
+`;
+
+    expect(generateRobotsTxt(template, 'https://3ssiri.github.io/agentic-awesome-skills')).toBe(
+      `User-agent: GPTBot
+Allow: /
+
+Sitemap: https://3ssiri.github.io/agentic-awesome-skills/sitemap.xml
+`,
+    );
+    expect(generateRobotsTxt(template, 'https://sickn33.github.io/agentic-awesome-skills/')).toContain(
+      'Sitemap: https://sickn33.github.io/agentic-awesome-skills/sitemap.xml',
+    );
+  });
+
+  it('rejects a robots.txt template without a Sitemap line', () => {
+    expect(() => generateRobotsTxt('User-agent: *\nAllow: /\n', 'https://example.com')).toThrow(
+      'robots.txt template must include a Sitemap line.',
+    );
   });
 });

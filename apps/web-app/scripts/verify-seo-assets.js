@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import sanitizeFilename from 'sanitize-filename';
+import { isDirectCliEntry } from './is-direct-cli-entry.js';
 import { getSeoLandingPaths } from './generate-sitemap.js';
 
 const APP_ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -1016,7 +1017,7 @@ export function runVerification({
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isDirectCliEntry(import.meta.url)) {
   const cliArgs = parseCliArgs(process.argv.slice(2));
   runVerification(cliArgs);
   console.log('SEO assets verification passed.');

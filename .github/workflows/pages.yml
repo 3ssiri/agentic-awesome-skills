@@ -24,6 +24,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      pages_available: ${{ steps.pages.outputs.available }}
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -95,16 +97,32 @@ jobs:
           touch .nojekyll
           test -f 404.html
 
+      - name: Check GitHub Pages availability
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/${GITHUB_REPOSITORY}/pages" >/dev/null 2>&1; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=GitHub Pages unavailable::Enable Pages in Settings → Pages → Source: GitHub Actions. Skipping configure/upload/deploy because this repository has no Pages site."
+          fi
+
       - name: Configure GitHub Pages
+        if: steps.pages.outputs.available == 'true'
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
 
       - name: Upload Pages artifact
+        if: steps.pages.outputs.available == 'true'
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           path: apps/web-app/dist
 
   deploy:
     needs: build
+    if: needs.build.outputs.pages_available == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

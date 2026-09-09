@@ -7,6 +7,7 @@ const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
 const SKILLS_JSON = path.join(PUBLIC_DIR, 'skills.json');
 const SEO_LANDING_PAGES_JSON = path.join(ROOT_DIR, 'src', 'data', 'seoLandingPages.json');
 const OUTPUT_PATH = path.join(PUBLIC_DIR, 'sitemap.xml');
+const ROBOTS_PATH = path.join(PUBLIC_DIR, 'robots.txt');
 const BASE_PATH =
   (process.env.VITE_BASE_PATH || '/').trim().replace(/\/+$/, '');
 const NORMALIZED_BASE_PATH = BASE_PATH && BASE_PATH !== '/' ? BASE_PATH : '';
@@ -111,6 +112,19 @@ export function getSeoLandingPaths() {
     .map((slug) => toIndexableRoutePath(`/topics/${encodeURIComponent(slug)}`));
 }
 
+export function generateRobotsTxt(templateText, siteUrl = SITE_URL) {
+  const sitemapUrl = `${String(siteUrl).replace(/\/+$/, '')}/sitemap.xml`;
+  const text = String(templateText ?? '');
+  if (!/^Sitemap:\s*\S+/m.test(text)) {
+    throw new Error('robots.txt template must include a Sitemap line.');
+  }
+  const nextText = text.replace(/^(Sitemap:\s*)\S+\s*$/m, `$1${sitemapUrl}`);
+  if (!nextText.includes(`Sitemap: ${sitemapUrl}`)) {
+    throw new Error(`Failed to bind robots.txt Sitemap to ${sitemapUrl}.`);
+  }
+  return nextText.endsWith('\n') ? nextText : `${nextText}\n`;
+}
+
 export function generateSitemapXml({ baseUrl, paths, lastmod = DEFAULT_LASTMOD }) {
   const normalizedBase = String(baseUrl).replace(/\/$/, '');
   const uniquePaths = [...new Set(paths.map(toIndexableRoutePath))];
@@ -154,6 +168,10 @@ function writeSitemap() {
   const xml = buildSitemap(skills, getTopSkillCount(), SITE_URL);
   fs.writeFileSync(OUTPUT_PATH, xml, 'utf-8');
   console.log(`sitemap.xml generated at ${OUTPUT_PATH}`);
+
+  const robotsTemplate = fs.readFileSync(ROBOTS_PATH, 'utf-8');
+  fs.writeFileSync(ROBOTS_PATH, generateRobotsTxt(robotsTemplate, SITE_URL), 'utf-8');
+  console.log(`robots.txt sitemap bound to ${SITE_URL}/sitemap.xml`);
 }
 
 if (process.argv[1] && process.argv[1].endsWith('generate-sitemap.js')) {

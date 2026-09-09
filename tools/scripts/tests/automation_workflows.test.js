@@ -345,3 +345,25 @@ assert.match(
   /npm pack --dry-run --json/,
   "npm publish workflow should dry-run package creation before publishing",
 );
+
+const dependencyReviewWorkflow = readText(".github/workflows/dependency-review.yml");
+assert.match(
+  dependencyReviewWorkflow,
+  /fail-on-severity: high/,
+  "dependency review should still block high-severity findings when the graph is available",
+);
+assert.match(
+  dependencyReviewWorkflow,
+  /fail-on-scopes: runtime/,
+  "dependency review should still block runtime-scope findings when the graph is available",
+);
+assert.match(
+  dependencyReviewWorkflow,
+  /id: graph/,
+  "dependency review should probe whether the GitHub dependency graph is available",
+);
+assert.match(
+  dependencyReviewWorkflow,
+  /if: steps\.graph\.outputs\.available == 'true'/,
+  "dependency review should skip instead of failing when the repository cannot serve the compare API",
+);

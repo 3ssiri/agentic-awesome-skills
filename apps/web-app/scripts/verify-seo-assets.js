@@ -12,6 +12,25 @@ const REPOSITORY_URL = 'https://github.com/sickn33/agentic-awesome-skills';
 const PACKAGE_URL = 'https://www.npmjs.com/package/agentic-awesome-skills';
 const EXPECTED_HOSTED_CATALOG_ROOT = 'https://sickn33.github.io/agentic-awesome-skills/';
 
+export function normalizeHostedCatalogRoot(urlValue) {
+  const trimmed = String(urlValue ?? '').trim();
+  assert(trimmed.length > 0, 'Hosted catalog root must be a non-empty URL.');
+  return `${trimmed.replace(/\/+$/, '')}/`;
+}
+
+export function resolveHostedCatalogRoot({ hostedCatalogRoot } = {}) {
+  if (hostedCatalogRoot) {
+    return normalizeHostedCatalogRoot(hostedCatalogRoot);
+  }
+
+  const fromEnv = (process.env.SEO_SITE_URL || process.env.WEBSITE_BASE_URL || '').trim();
+  if (fromEnv) {
+    return normalizeHostedCatalogRoot(fromEnv);
+  }
+
+  return EXPECTED_HOSTED_CATALOG_ROOT;
+}
+
 function safeUserPath(pathValue, baseDir = process.cwd()) {
   const basePath = path.resolve(baseDir);
   const resolvedPath = path.resolve(basePath, String(pathValue ?? ''));
@@ -245,7 +264,7 @@ function assertMetaContent(htmlText, selectorType, selectorValue) {
   assert(content.length > 0, `Meta tag ${selectorType}="${selectorValue}" must have non-empty content.`);
 }
 
-export function analyzeSitemap(urlText, { minSkillUrls = 1, requireHostedUrl = false } = {}) {
+export function analyzeSitemap(urlText, { minSkillUrls = 1, requireHostedUrl = false, hostedCatalogRoot } = {}) {
   const locations = extractSitemapLocations(urlText);
   const normalizedMinSkillUrls = Number.parseInt(String(minSkillUrls), 10);
   const effectiveMinSkillUrls = Number.isFinite(normalizedMinSkillUrls)
@@ -288,7 +307,8 @@ export function analyzeSitemap(urlText, { minSkillUrls = 1, requireHostedUrl = f
 
   const rootUrl = new URL(rootCandidate.raw);
   if (requireHostedUrl) {
-    assert(rootCandidate.raw === EXPECTED_HOSTED_CATALOG_ROOT, `Hosted sitemap root must equal ${EXPECTED_HOSTED_CATALOG_ROOT}`);
+    const expectedRoot = resolveHostedCatalogRoot({ hostedCatalogRoot });
+    assert(rootCandidate.raw === expectedRoot, `Hosted sitemap root must equal ${expectedRoot}`);
   }
   const normalizedRoot = rootUrl.pathname === '/' ? '' : rootUrl.pathname.replace(/\/+$/, '');
   const rootPrefix = normalizedRoot ? `${normalizedRoot}/` : '/';
@@ -362,8 +382,8 @@ export function analyzeSitemap(urlText, { minSkillUrls = 1, requireHostedUrl = f
   };
 }
 
-export function assertSitemap(urlText, { minSkillUrls = 1, requireHostedUrl = false } = {}) {
-  analyzeSitemap(urlText, { minSkillUrls, requireHostedUrl });
+export function assertSitemap(urlText, { minSkillUrls = 1, requireHostedUrl = false, hostedCatalogRoot } = {}) {
+  analyzeSitemap(urlText, { minSkillUrls, requireHostedUrl, hostedCatalogRoot });
 }
 
 function extractJsonLdEntries(htmlText) {

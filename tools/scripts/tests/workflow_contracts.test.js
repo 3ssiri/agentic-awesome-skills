@@ -90,6 +90,11 @@ for (const command of [
   assert.match(pagesWorkflow, new RegExp(command.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")));
 }
 assert.match(pagesWorkflow, /verify:seo -- --require-hosted-url/);
+assert.match(
+  pagesWorkflow,
+  /Validate SEO artifact quality[\s\S]*?SEO_SITE_URL: https:\/\/\$\{\{ github\.repository_owner \}\}\.github\.io\/\$\{\{ github\.event\.repository\.name \}\}/,
+  "Pages SEO verification must use the same hosted catalog URL as the Pages build",
+);
 
 const ciWorkflow = fs.readFileSync(
   path.resolve(__dirname, "..", "..", "..", ".github", "workflows", "ci.yml"),

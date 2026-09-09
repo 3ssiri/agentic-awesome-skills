@@ -191,6 +191,47 @@ describe('seo assets verification helpers', () => {
     expect(() => assertSitemap(xml, { requireHostedUrl: true })).toThrow('Hosted sitemap root');
   });
 
+  it('accepts a fork hosted catalog root from SEO_SITE_URL', () => {
+    const previous = process.env.SEO_SITE_URL;
+    process.env.SEO_SITE_URL = 'https://3ssiri.github.io/agentic-awesome-skills';
+    try {
+      const forkRoot = 'https://3ssiri.github.io/agentic-awesome-skills/';
+      const xml = `<urlset>
+        <url><loc>${forkRoot}</loc></url>
+        <url><loc>${forkRoot}skill/agent-a/</loc></url>
+      </urlset>`;
+
+      expect(() => assertSitemap(xml, { requireHostedUrl: true })).not.toThrow();
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SEO_SITE_URL;
+      } else {
+        process.env.SEO_SITE_URL = previous;
+      }
+    }
+  });
+
+  it('still rejects a mismatched root when SEO_SITE_URL is set', () => {
+    const previous = process.env.SEO_SITE_URL;
+    process.env.SEO_SITE_URL = 'https://3ssiri.github.io/agentic-awesome-skills';
+    try {
+      const xml = `<urlset>
+        <url><loc>https://sickn33.github.io/agentic-awesome-skills/</loc></url>
+        <url><loc>https://sickn33.github.io/agentic-awesome-skills/skill/agent-a/</loc></url>
+      </urlset>`;
+
+      expect(() => assertSitemap(xml, { requireHostedUrl: true })).toThrow(
+        'Hosted sitemap root must equal https://3ssiri.github.io/agentic-awesome-skills/',
+      );
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SEO_SITE_URL;
+      } else {
+        process.env.SEO_SITE_URL = previous;
+      }
+    }
+  });
+
   it('rejects slashless sitemap routes', () => {
     const xml = `<urlset>
       <url><loc>${FIXTURE_ROOT_URL}</loc></url>
